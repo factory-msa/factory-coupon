@@ -10,7 +10,7 @@ import javax.persistence.Id
 import javax.persistence.Table
 
 @Entity
-@Table(name = "FACTORY_COUPON")
+@Table(name = "COUPON")
 class CouponEntity(
 
     @Id
