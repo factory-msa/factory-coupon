@@ -30,6 +30,9 @@ class CouponEntity(
     @Column(name = "ISSUANCE_ID", nullable = false)
     var issuanceId: String,
 
+    @Column(name = "PRODUCT_ID")
+    var productId: String,
+
     @Column(name = "PRICE", nullable = false)
     var price: Long
 ): BaseTimeEntity() {
