@@ -32,6 +32,8 @@ repositories {
 extra["springCloudVersion"] = "2021.0.8"
 
 dependencies {
+    runtimeOnly("com.mysql:mysql-connector-j")
+
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-web")
@@ -39,6 +41,7 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.springframework.cloud:spring-cloud-starter-config")
     implementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client")
+
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
 
