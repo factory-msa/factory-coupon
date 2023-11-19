@@ -13,6 +13,6 @@ class CodeConfig(
     }
 
     companion object {
-        const val DEFAULT_LENGTH = 8
+        const val DEFAULT_LENGTH = 12
     }
 }
