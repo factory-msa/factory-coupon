@@ -1,8 +1,13 @@
 spring:
   application:
-    name: factory-coupon-service
+    name: coupon
   config:
     import: optional:configserver:http://localhost:8888
+  profiles:
+    active: local
+  jpa:
+    hibernate:
+      ddl-auto: update
 server:
   port: 10001
 
