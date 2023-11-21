@@ -23,6 +23,7 @@ class CouponGeneratorService(
      */
     fun generateCoupons(command: CouponIssuanceApiRequest): CouponIssuanceApiResponse {
         val couponNumbers = mutableListOf<String>()
+        val coupons = mutableListOf<CouponEntity>()
 
         while (couponNumbers.size != command.issuanceQuantity) {
             val couponNumber = VoucherCodes.generate(codeConfig)
@@ -37,12 +38,14 @@ class CouponGeneratorService(
                 command.price
             )
 
-            // TODO: Coupon save vs Coupons saveAll 성능 비교
-            repository.save(coupon)
-            // repository.saveAll(coupons)
+            coupons.add(coupon)
 
             couponNumbers.add(couponNumber)
         }
+
+        repository.saveAll(coupons)
+
+        logger.debug("쿠폰 생성이 완료되었습니다. 발급ID: `${command.issuanceId}`, 생성수량: `${command.issuanceQuantity}")
 
         return CouponIssuanceApiResponse(
             couponNumbers
