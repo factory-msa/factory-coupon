@@ -14,7 +14,7 @@ spring:
 
 eureka:
   instance:
-    instance-id: factory-coupon-service
+    instance-id: coupon-service
   client:
     register-with-eureka: true
     fetch-registry: true
