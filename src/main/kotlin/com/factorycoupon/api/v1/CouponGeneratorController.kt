@@ -11,7 +11,7 @@ class CouponGeneratorController(
     private val service: CouponGeneratorService
 ) {
 
-    @PostMapping("/api/v1/coupon/coupons/issue")
+    @PostMapping("/api/v1/coupons/issue")
     fun generateCoupons(
         @RequestBody command: CouponGeneratorService.CouponIssuanceApiRequest
     ): ApiResponse<CouponGeneratorService.CouponIssuanceApiResponse> {
