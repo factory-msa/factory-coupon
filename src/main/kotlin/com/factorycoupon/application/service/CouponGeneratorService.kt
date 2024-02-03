@@ -3,7 +3,9 @@ package com.factorycoupon.application.service
 import com.factorycoupon.application.support.CodeConfig
 import com.factorycoupon.application.support.VoucherCodes
 import com.factorycoupon.domain.entity.CouponEntity
+import com.factorycoupon.domain.entity.CouponNumberCheckEntity
 import com.factorycoupon.domain.entity.CouponStatusCode
+import com.factorycoupon.domain.repository.CouponCheckJpaRepository
 import com.factorycoupon.domain.repository.CouponJpaRepository
 import org.springframework.stereotype.Service
 import support.logging.logger
@@ -11,22 +13,24 @@ import java.time.LocalDateTime
 
 @Service
 class CouponGeneratorService(
-    private val repository: CouponJpaRepository
+    private val couponRepository: CouponJpaRepository,
+    private val couponCheckRepository: CouponCheckJpaRepository
 ) {
 
     private val logger = logger()
 
-    /**
-     * 발급 수량 만큼 반복하면서 쿠폰 생성
-     *  TODO: 쿠폰 생성 실패 케이스 고려 (쿠폰 생성 시간 초과, retry 로직 추가 후 retry 초과, 네트워크 오류 등), 쿠폰 번호 중복 생성 로깅 (횟수 카운트 위해)
-     *
-     */
     fun generateCoupons(command: CouponIssuanceApiRequest): CouponIssuanceApiResponse {
-        val couponNumbers = mutableListOf<String>()
+        val startTime = System.currentTimeMillis()
         val coupons = mutableListOf<CouponEntity>()
+        val checkCoupons = mutableListOf<CouponNumberCheckEntity>()
 
-        while (couponNumbers.size != command.issuanceQuantity) {
+        while (isGeneratingCoupons(coupons.size, command.issuanceQuantity)) {
             val couponNumber = VoucherCodes.generate(codeConfig)
+
+            if (couponCheckRepository.existsByCouponNumber(couponNumber)) {
+                logger.info("duplicate couponNumber: `{}`", couponNumber)
+                continue
+            }
 
             val coupon = CouponEntity(
                 couponNumber,
@@ -39,18 +43,28 @@ class CouponGeneratorService(
             )
 
             coupons.add(coupon)
-
-            couponNumbers.add(couponNumber)
+            checkCoupons.add(CouponNumberCheckEntity(couponNumber))
         }
 
-        repository.saveAll(coupons)
+        couponRepository.saveAll(coupons)
+        couponCheckRepository.saveAll(checkCoupons)
 
-        logger.debug("쿠폰 생성이 완료되었습니다. 발급ID: `${command.issuanceId}`, 생성수량: `${command.issuanceQuantity}")
+        logger.debug("쿠폰 생성이 완료되었습니다. 발급ID: `${command.issuanceId}`, 생성수량: `${command.issuanceQuantity}`")
+
+        val endTime = System.currentTimeMillis()
+        val executedTime = endTime - startTime
+
+        logger.debug("쿠폰 생성에 실행된 시간: {}", executedTime)
 
         return CouponIssuanceApiResponse(
-            couponNumbers
+            coupons.map { it.couponNumber }.toMutableList()
         )
     }
+
+    private fun isGeneratingCoupons(
+        size: Int,
+        issuanceQuantity: Int
+    ) = size < issuanceQuantity
 
     class CouponIssuanceApiRequest(
         val issuanceId: String,
@@ -62,7 +76,7 @@ class CouponGeneratorService(
     )
 
     class CouponIssuanceApiResponse(
-        val couponNumbers: List<String>
+        val couponNumbers: MutableList<String>
     )
 
     companion object {
